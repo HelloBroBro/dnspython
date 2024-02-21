@@ -170,6 +170,20 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(len(m2.options), 1)
         self.assertEqual(m2.options[0], opt)
 
+    def test_keeping_wire(self):
+        m = dns.message.from_wire(goodwire)
+        self.assertEqual(m.wire, goodwire)
+        m = dns.message.make_query("example", "A")
+        self.assertEqual(m.wire, None)
+
+    def test_recording_wire(self):
+        m = dns.message.from_wire(goodwire)
+        self.assertEqual(m.wire, goodwire)
+        m.wire = None
+        wire = m.to_wire()
+        self.assertEqual(wire, goodwire)
+        self.assertEqual(m.wire, goodwire)
+
     def test_TooBig(self):
         def bad():
             q = dns.message.from_text(query_text)
@@ -990,6 +1004,15 @@ www.dnspython.org. 300 IN A 1.2.3.4
         self.assertEqual(update.section_count(dns.update.UpdateSection.ZONE), 1)
         self.assertEqual(update.section_count(dns.update.UpdateSection.PREREQ), 5)
         self.assertEqual(update.section_count(dns.update.UpdateSection.UPDATE), 7)
+
+    def test_extended_errors(self):
+        options = [
+            dns.edns.EDEOption(dns.edns.EDECode.NETWORK_ERROR, "tubes not tubing"),
+            dns.edns.EDEOption(dns.edns.EDECode.OTHER, "catch all code"),
+        ]
+        r = dns.message.make_query("example", "A", use_edns=0, options=options)
+        r.flags |= dns.flags.QR
+        self.assertEqual(r.extended_errors(), options)
 
 
 if __name__ == "__main__":

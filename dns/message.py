@@ -20,7 +20,7 @@
 import contextlib
 import io
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import dns.edns
 import dns.entropy
@@ -161,6 +161,7 @@ class Message:
         self.index: IndexType = {}
         self.errors: List[MessageError] = []
         self.time = 0.0
+        self.wire: Optional[bytes] = None
 
     @property
     def question(self) -> List[dns.rrset.RRset]:
@@ -645,6 +646,7 @@ class Message:
             if multi:
                 self.tsig_ctx = ctx
         wire = r.get_wire()
+        self.wire = wire
         if prepend_length:
             wire = len(wire).to_bytes(2, "big") + wire
         return wire
@@ -911,6 +913,14 @@ class Message:
         """
         self.flags &= 0x87FF
         self.flags |= dns.opcode.to_flags(opcode)
+
+    def get_options(self, otype: dns.edns.OptionType) -> List[dns.edns.Option]:
+        """Return the list of options of the specified type."""
+        return [option for option in self.options if option.otype == otype]
+
+    def extended_errors(self) -> List[dns.edns.EDEOption]:
+        """Return the list of Extended DNS Error (EDE) options in the message"""
+        return cast(List[dns.edns.EDEOption], self.get_options(dns.edns.OptionType.EDE))
 
     def _get_one_rr_per_rrset(self, value):
         # What the caller picked is fine.
@@ -1251,6 +1261,7 @@ class _WireReader:
         factory = _message_factory_from_opcode(dns.opcode.from_flags(flags))
         self.message = factory(id=id)
         self.message.flags = dns.flags.Flag(flags)
+        self.message.wire = self.parser.wire
         self.initialize_message(self.message)
         self.one_rr_per_rrset = self.message._get_one_rr_per_rrset(
             self.one_rr_per_rrset
