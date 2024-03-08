@@ -153,6 +153,7 @@ class SyncQuicConnection(BaseQuicConnection):
         finally:
             with self._lock:
                 self._done = True
+            self._socket.close()
             # Ensure anyone waiting for this gets woken up.
             self._handshake_complete.set()
 
@@ -260,7 +261,7 @@ class SyncQuicManager(BaseQuicManager):
         source=None,
         source_port=0,
         want_session_ticket=True,
-        want_token=True
+        want_token=True,
     ):
         with self._lock:
             (connection, start) = self._connect(
