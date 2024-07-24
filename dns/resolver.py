@@ -83,7 +83,7 @@ class NXDOMAIN(dns.exception.DNSException):
         else:
             msg = "The DNS query name does not exist"
         qnames = ", ".join(map(str, qnames))
-        return "{}: {}".format(msg, qnames)
+        return f"{msg}: {qnames}"
 
     @property
     def canonical_name(self):
@@ -154,7 +154,7 @@ def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
-        texts.append("Server {} answered {}".format(err[0], err[3]))
+        texts.append(f"Server {err[0]} answered {err[3]}")
     return texts
 
 
@@ -162,7 +162,7 @@ class LifetimeTimeout(dns.exception.Timeout):
     """The resolution lifetime expired."""
 
     msg = "The resolution lifetime expired."
-    fmt = "%s after {timeout:.3f} seconds: {errors}" % msg[:-1]
+    fmt = f"{msg[:-1]} after {{timeout:.3f}} seconds: {{errors}}"
     supp_kwargs = {"timeout", "errors"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument
@@ -211,7 +211,7 @@ class NoNameservers(dns.exception.DNSException):
     """
 
     msg = "All nameservers failed to answer the query."
-    fmt = "%s {query}: {errors}" % msg[:-1]
+    fmt = f"{msg[:-1]} {{query}}: {{errors}}"
     supp_kwargs = {"request", "errors"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument
@@ -1205,9 +1205,7 @@ class BaseResolver:
                 enriched_nameservers.append(enriched_nameserver)
         else:
             raise ValueError(
-                "nameservers must be a list or tuple (not a {})".format(
-                    type(nameservers)
-                )
+                f"nameservers must be a list or tuple (not a {type(nameservers)})"
             )
         return enriched_nameservers
 
@@ -1926,7 +1924,7 @@ def _getnameinfo(sockaddr, flags=0):
         family = socket.AF_INET
     tuples = _getaddrinfo(host, port, family, socket.SOCK_STREAM, socket.SOL_TCP, 0)
     if len(tuples) > 1:
-        raise socket.error("sockaddr resolved to multiple addresses")
+        raise OSError("sockaddr resolved to multiple addresses")
     addr = tuples[0][4][0]
     if flags & socket.NI_DGRAM:
         pname = "udp"

@@ -45,7 +45,7 @@ dev = [
     "twine>=4.0.0",
     "wheel>=0.42.0",
 ]
-dnssec = ["cryptography>=42"]
+dnssec = ["cryptography>=43"]
 doh = ["httpcore>=1.0.0", "httpx>=0.26.0", "h2>=4.1.0"]
 doq = ["aioquic>=1.0.0"]
 idna = ["idna>=3.7"]
@@ -90,7 +90,20 @@ path = "dns/version.py"
 expression = "version"
 
 [tool.ruff]
-lint.ignore = ['E741', 'F401']
+lint.select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]
+lint.ignore = ["E501", "E741", "F401", "I001", "B904", "B011"]
+lint.exclude = ["tests/*"]
 
 [tool.isort]
 profile = "black"
