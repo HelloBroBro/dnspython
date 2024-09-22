@@ -279,41 +279,41 @@ class Reader:
         # Sometimes there are modifiers in the hostname. These come after
         # the dollar sign. They are in the form: ${offset[,width[,base]]}.
         # Make names
+        mod = ""
+        sign = "+"
+        offset = "0"
+        width = "0"
+        base = "d"
         g1 = is_generate1.match(side)
         if g1:
             mod, sign, offset, width, base = g1.groups()
             if sign == "":
                 sign = "+"
-        g2 = is_generate2.match(side)
-        if g2:
-            mod, sign, offset = g2.groups()
-            if sign == "":
-                sign = "+"
-            width = 0
-            base = "d"
-        g3 = is_generate3.match(side)
-        if g3:
-            mod, sign, offset, width = g3.groups()
-            if sign == "":
-                sign = "+"
-            base = "d"
+        else:
+            g2 = is_generate2.match(side)
+            if g2:
+                mod, sign, offset = g2.groups()
+                if sign == "":
+                    sign = "+"
+                width = "0"
+                base = "d"
+            else:
+                g3 = is_generate3.match(side)
+                if g3:
+                    mod, sign, offset, width = g3.groups()
+                    if sign == "":
+                        sign = "+"
+                    base = "d"
 
-        if not (g1 or g2 or g3):
-            mod = ""
-            sign = "+"
-            offset = 0
-            width = 0
-            base = "d"
-
-        offset = int(offset)
-        width = int(width)
+        ioffset = int(offset)
+        iwidth = int(width)
 
         if sign not in ["+", "-"]:
             raise dns.exception.SyntaxError(f"invalid offset sign {sign}")
         if base not in ["d", "o", "x", "X", "n", "N"]:
             raise dns.exception.SyntaxError(f"invalid type {base}")
 
-        return mod, sign, offset, width, base
+        return mod, sign, ioffset, iwidth, base
 
     def _generate_line(self):
         # range lhs [ttl] [class] type rhs [ comment ]
